@@ -1,0 +1,20 @@
+-r requirements.txt
+appdirs>=1.4.4
+attrs>=19.3.0
+black>=19.10b0
+click>=7.1.2
+isort>=4.3.21
+libcst>=0.3.5
+mypy>=0.770
+mypy-extensions>=0.4.3
+pathspec>=0.8.0
+psutil>=5.7.0
+pyre-check>=0.0.46
+pyre-extensions>=0.0.18
+pywatchman>=1.4.1
+PyYAML>=5.3.1
+regex>=2020.5.14
+toml>=0.10.1
+typed-ast>=1.4.1
+typing-extensions>=3.7.4.2
+typing-inspect>=0.6.0
