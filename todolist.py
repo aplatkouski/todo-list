@@ -1,5 +1,5 @@
-from datetime import date, datetime
-from typing import Any, Callable, Dict, NoReturn, Tuple
+from datetime import date, timedelta
+from typing import Any, Callable, Dict, List, NoReturn, Tuple
 
 from sqlalchemy import Column, Date, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -21,9 +21,9 @@ class Task(Base):
 
     id = Column(Integer, primary_key=True)
     task = Column(String)
-    deadline = Column(Date, default=datetime.today())
+    deadline = Column(Date, default=date.today())
 
-    def __init__(self, task: str, deadline: date = datetime.today().date()) -> None:
+    def __init__(self, task: str, deadline: date = date.today()) -> None:
         self.task = task
         self.deadline = deadline
 
@@ -33,7 +33,8 @@ class Task(Base):
 
     def __repr__(self) -> str:
         return (
-            f"<Task(id='{self.id}', "
+            f"<{self.__class__.__name__}("
+            f"id='{self.id}', "
             f"task={self.task}, "
             f"deadline={self.deadline})>"
         )
@@ -43,8 +44,10 @@ class ToDoList:
     def __init__(self, session: Any) -> None:
         self._session = session
         self.menu_options: MenuOptions = {
-            '1': ("Today's tasks", self.print_tasks),
-            '2': ("Add task", self.add_task),
+            '1': ("Today's tasks", self._print_today_tasks),
+            '2': ("Week's tasks", self._print_week_tasks),
+            '3': ("All tasks", self._print_all_tasks),
+            '4': ("Add task", self.add_task),
             '0': ("Exit", self._exit),
         }
 
@@ -61,25 +64,59 @@ class ToDoList:
         print("\nBye!")
         exit()
 
-    def print_tasks(self, deadline: date = datetime.today().date()) -> None:
-        print("\nToday:")
-        tasks = (
-            self._session.query(Task)
-            .filter(Task.deadline == deadline)
-            .order_by(Task.id)
-            .all()
-        )
+    @staticmethod
+    def _print_tasks(tasks: List['Task'], verbose: bool = False) -> None:
         if tasks:
             print(
-                *(f"{num}. {task}" for num, task in enumerate(tasks, start=1)), sep='\n'
+                *(
+                    f"{num}. {task.task}"
+                    f"{'. ' + task.deadline.strftime('%-d %b') if verbose else ''}"
+                    for num, task in enumerate(tasks, start=1)
+                ),
+                sep='\n',
             )
         else:
             print("Nothing to do!")
-        print("\n")
+        print("")
+
+    def _print_today_tasks(self) -> None:
+        today = date.today().strftime('%d %b')
+        print(f"\nToday {today}:")
+        tasks: List['Task'] = (
+            self._session.query(Task)
+            .filter(Task.deadline == date.today())
+            .order_by(Task.id)
+            .all()
+        )
+        self._print_tasks(tasks)
+
+    def _print_week_tasks(self) -> None:
+        start_date = date.today()
+        end_date = date.today() + timedelta(days=7)
+        tasks: List['Task'] = (
+            self._session.query(Task)
+            .filter(Task.deadline.between(start_date, end_date))
+            .order_by(Task.deadline)
+            .all()
+        )
+        date_range = [
+            start_date + timedelta(days=day)
+            for day in range((end_date - start_date).days)
+        ]
+        for day in date_range:
+            print(day.strftime('%A %-d %b:'))
+            self._print_tasks(list(filter(lambda t: t.deadline == day, tasks)))
+
+    def _print_all_tasks(self) -> None:
+        print("\nAll tasks:")
+        tasks: List['Task'] = self._session.query(Task).order_by(Task.deadline).all()
+        self._print_tasks(tasks, verbose=True)
 
     def add_task(self) -> None:
         task: str = input("\nEnter task\n")
-        self._session.add(Task(task))
+        deadline: str = input("Enter deadline\n")
+        # New in version 3.7.: date.fromisoformat(date_string)
+        self._session.add(Task(task=task, deadline=date.fromisoformat(deadline)))
         self._session.commit()
         print("The task has been added!\n")
 

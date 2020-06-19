@@ -5,6 +5,7 @@
 
  1.  Print a simple list of 4 tasks.
 
+
 ## Stage 2: I am an Alchemist!
 
  - [x] [SQLAlchemy 1.4 Documentation](https://docs.sqlalchemy.org/en/14/index.html)
@@ -32,3 +33,7 @@
  * [Pull requests #5371](https://github.com/sqlalchemy/sqlalchemy/pull/5371)
  * [Issues #5372](https://github.com/sqlalchemy/sqlalchemy/issues/5372)
 
+
+## Stage 3: Deadlines are scary
+
+ - [ ] [``datetime`` — Basic date and time types](https://docs.python.org/3.10/library/datetime.html)
