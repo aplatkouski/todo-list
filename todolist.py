@@ -47,7 +47,9 @@ class ToDoList:
             '1': ("Today's tasks", self._print_today_tasks),
             '2': ("Week's tasks", self._print_week_tasks),
             '3': ("All tasks", self._print_all_tasks),
-            '4': ("Add task", self.add_task),
+            '4': ("Missed tasks", self._print_missed_tasks),
+            '5': ("Add task", self.add_task),
+            '6': ("Delete task", self._delete_missed_tasks),
             '0': ("Exit", self._exit),
         }
 
@@ -74,10 +76,10 @@ class ToDoList:
                     for num, task in enumerate(tasks, start=1)
                 ),
                 sep='\n',
+                end='\n\n'
             )
         else:
-            print("Nothing to do!")
-        print("")
+            print("Nothing to do!\n")
 
     def _print_today_tasks(self) -> None:
         today = date.today().strftime('%d %b')
@@ -111,6 +113,39 @@ class ToDoList:
         print("\nAll tasks:")
         tasks: List['Task'] = self._session.query(Task).order_by(Task.deadline).all()
         self._print_tasks(tasks, verbose=True)
+
+    def _select_missed_tasks(self) -> List['Task']:
+        tasks: List['Task'] = (
+            self._session.query(Task)
+            .filter(Task.deadline < date.today())
+            .order_by(Task.deadline)
+            .all()
+        )
+        return tasks
+
+    def _print_missed_tasks(self) -> None:
+        print(f"\nMissed tasks:")
+        tasks = self._select_missed_tasks()
+        if tasks:
+            self._print_tasks(tasks, verbose=True)
+        else:
+            print("Nothing is missed!\n")
+
+    def _delete_missed_tasks(self) -> None:
+        tasks: List['Task'] = self._select_missed_tasks()
+        if not tasks:
+            print("Nothing to delete\n")
+            return
+        print("\nChose the number of the task you want to delete:")
+        self._print_tasks(tasks, verbose=True)
+
+        tasks_dict: Dict[int, 'Task'] = dict(enumerate(tasks, start=1))
+        num: int = 0
+        while num not in tasks_dict:
+            num = int(input())
+        self._session.delete(tasks_dict[num])
+        self._session.commit()
+        print("The task has been deleted!\n")
 
     def add_task(self) -> None:
         task: str = input("\nEnter task\n")

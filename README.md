@@ -37,3 +37,6 @@
 ## Stage 3: Deadlines are scary
 
  - [ ] [``datetime`` — Basic date and time types](https://docs.python.org/3.10/library/datetime.html)
+
+
+## Stage 4: Bye, completed tasks
